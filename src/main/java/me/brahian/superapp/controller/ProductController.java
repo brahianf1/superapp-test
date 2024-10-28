@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,10 +29,12 @@ public class ProductController {
                 if (response instanceof List && !((List<?>) response).isEmpty()) {
                     return new ResponseEntity<>(response, HttpStatus.OK);
                 }
+            } catch (HttpStatusCodeException e) {
+                return new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
             } catch (RestClientException e) {
-                // Log the exception and continue to the next URL
+                return new ResponseEntity<>("Error fetching product data: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-        return new ResponseEntity<>("Error fetching product data or no data found", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("No data found", HttpStatus.NOT_FOUND);
     }
 }
